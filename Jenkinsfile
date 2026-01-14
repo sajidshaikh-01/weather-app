@@ -49,30 +49,33 @@ pipeline {
 }
 
 
-        stage('Update GitOps Repo') {
-            steps {
-                withCredentials([usernamePassword(
-                    credentialsId: 'gitops-creds',
-                    usernameVariable: 'GIT_USER',
-                    passwordVariable: 'GIT_TOKEN'
-                )]) {
-                    sh '''
-                      rm -rf weather-gitops
-                      git clone https://${GIT_USER}:${GIT_TOKEN}@github.com/<your-username>/weather-gitops.git
-                      cd weather-gitops/base
+    stage('Update GitOps Repo') {
+        steps {
+            withCredentials([usernamePassword(
+                credentialsId: 'gitops-creds',
+                usernameVariable: 'GIT_USER',
+                passwordVariable: 'GIT_TOKEN'
+            )]) {
+                sh '''
+                rm -rf weather-gitops
 
-                      sed -i "s|image: .*weather-app:.*|image: $ECR_REPO:${IMAGE_TAG}|g" deployment.yaml
+                git clone https://${GIT_USER}:${GIT_TOKEN}@github.com/sajidshaikh-01/weather-gitops.git
 
-                      git config user.email "jenkins@ci.local"
-                      git config user.name "jenkins-ci"
+                cd weather-gitops/base
 
-                      git add deployment.yaml
-                      git commit -m "Update weather-app image to ${IMAGE_TAG}"
-                      git push origin main
-                    '''
+                sed -i "s|image: .*weather-app:.*|image: 674182809289.dkr.ecr.us-east-1.amazonaws.com/weather-app:${IMAGE_TAG}|g" deployment.yaml
+
+                git config user.email "jenkins@ci.local"
+                git config user.name "jenkins-ci"
+
+                git add deployment.yaml
+                git commit -m "Update weather-app image to ${IMAGE_TAG}"
+                git push origin main
+                '''
                 }
             }
         }
+
     }
 }
 
