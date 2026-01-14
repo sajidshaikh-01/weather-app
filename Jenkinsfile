@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        AWS_REGION = "ap-south-1"
+        AWS_REGION = "us-east-1"
         ECR_REPO   = "674182809289.dkr.ecr.ap-south-1.amazonaws.com/weather-app"
         IMAGE_TAG  = "${BUILD_NUMBER}"
         GITOPS_REPO = "https://github.com/sajidshaikh-01/weather-gitops.git"
