@@ -40,13 +40,14 @@ pipeline {
 }
 
         stage('Push Image to ECR') {
-            steps {
-                sh '''
-                  docker tag weather-app:${IMAGE_TAG} $ECR_REPO:${IMAGE_TAG}
-                  docker push $ECR_REPO:${IMAGE_TAG}
-                '''
-            }
-        }
+    steps {
+        sh '''
+          docker tag weather-app:${IMAGE_TAG} 674182809289.dkr.ecr.us-east-1.amazonaws.com/weather-app:${IMAGE_TAG}
+          docker push 674182809289.dkr.ecr.us-east-1.amazonaws.com/weather-app:${IMAGE_TAG}
+        '''
+    }
+}
+
 
         stage('Update GitOps Repo') {
             steps {
