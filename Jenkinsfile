@@ -3,13 +3,14 @@ pipeline {
 
     environment {
         AWS_REGION = "ap-south-1"
-        ECR_REPO   = "674182809289.dkr.ecr.us-east-1.amazonaws.com/weather-app"
+        ECR_REPO   = "674182809289.dkr.ecr.ap-south-1.amazonaws.com/weather-app"
         IMAGE_TAG  = "${BUILD_NUMBER}"
+        GITOPS_REPO = "https://github.com/sajidshaikh-01/weather-gitops.git"
     }
 
     stages {
 
-        stage('Checkout Code') {
+        stage('Checkout App Code') {
             steps {
                 checkout scm
             }
@@ -38,7 +39,7 @@ pipeline {
             }
         }
 
-        stage('Tag & Push Image') {
+        stage('Push Image to ECR') {
             steps {
                 sh '''
                   docker tag weather-app:${IMAGE_TAG} $ECR_REPO:${IMAGE_TAG}
@@ -46,14 +47,31 @@ pipeline {
                 '''
             }
         }
-    }
 
-    post {
-        success {
-            echo "Docker image pushed to ECR successfully"
-        }
-        failure {
-            echo "Pipeline failed"
+        stage('Update GitOps Repo') {
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: 'gitops-creds',
+                    usernameVariable: 'GIT_USER',
+                    passwordVariable: 'GIT_TOKEN'
+                )]) {
+                    sh '''
+                      rm -rf weather-gitops
+                      git clone https://${GIT_USER}:${GIT_TOKEN}@github.com/<your-username>/weather-gitops.git
+                      cd weather-gitops/base
+
+                      sed -i "s|image: .*weather-app:.*|image: $ECR_REPO:${IMAGE_TAG}|g" deployment.yaml
+
+                      git config user.email "jenkins@ci.local"
+                      git config user.name "jenkins-ci"
+
+                      git add deployment.yaml
+                      git commit -m "Update weather-app image to ${IMAGE_TAG}"
+                      git push origin main
+                    '''
+                }
+            }
         }
     }
 }
+
